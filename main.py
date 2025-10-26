@@ -12,6 +12,8 @@ WEBHOOKS = [
     # Add more like "webhook3"
 ]
 
+DOWNLOAD_SECRET = "my_download_secret_9876"  # Change to a strong secret
+
 # --- Helper: Purge log entries older than 7 days ---
 def purge_old_entries(logfile):
     if not os.path.exists(logfile):
@@ -29,7 +31,7 @@ def purge_old_entries(logfile):
                     except ValueError:
                         ts = datetime.strptime(ts_str, "%Y-%m-%dT%H:%M:%S")
                 else:
-                    ts = now  # Keep if no timestamp
+                    ts = now  # Keep if no timestamp found
                 if (now - ts).days <= 7:
                     new_logs.append(entry)
             except Exception:
@@ -55,6 +57,10 @@ for webhook_name in WEBHOOKS:
 
     def make_get_handler(logfile):
         def handler():
+            # Security: Require ?token=DOWNLOAD_SECRET
+            token = request.args.get("token", None)
+            if token != DOWNLOAD_SECRET:
+                return jsonify({"error": "Unauthorized"}), 401
             purge_old_entries(logfile)
             if not os.path.exists(logfile):
                 return jsonify([]), 200
@@ -66,6 +72,10 @@ for webhook_name in WEBHOOKS:
 
     def make_clear_handler(logfile):
         def handler():
+            # Security: Require ?token=DOWNLOAD_SECRET
+            token = request.args.get("token", None)
+            if token != DOWNLOAD_SECRET:
+                return jsonify({"error": "Unauthorized"}), 401
             open(logfile, "w").close()
             return jsonify({"status": f"{logfile} cleared"}), 200
         return handler
