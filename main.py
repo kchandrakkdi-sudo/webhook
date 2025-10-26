@@ -52,7 +52,7 @@ for webhook_name in WEBHOOKS:
             purge_old_entries(logfile)
             with open(logfile, "a") as f:
                 f.write(json.dumps(data) + "\n")
-            return jsonify({"status": f"{logfile} received"}), 200
+            return "", 200
         return handler
 
     def make_get_handler(logfile):
@@ -86,8 +86,10 @@ for webhook_name in WEBHOOKS:
 
 @app.route("/", methods=["GET"])
 def home():
-    return "Flask app is running. Valid endpoints: " + ", ".join([f"/{w}" for w in WEBHOOKS]), 200
+    #return "Flask app is running. Valid endpoints: " + ", ".join([f"/{w}" for w in WEBHOOKS]), 200
+    return "Flask app is running" , 200
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 10000))
     app.run(host="0.0.0.0", port=port)
+
